@@ -1,196 +1,141 @@
-# 🎮 Memory Duel — AI Card Game
+# 🎮 Memory Duel
 
-<div align="center">
+A turn-based memory card game where you face off against an AI opponent that learns as the game unfolds. Built in 3-4 hours with vanilla JavaScript.
 
-**An intelligent memory-matching game where you compete against a probabilistic AI opponent.**
-
-[🎯 Play Live Demo](http://fez-memoy-game.s3-website.eu-north-1.amazonaws.com) | [📊 View Benchmarks](benchmark.html)
-
-[![AWS](https://img.shields.io/badge/Deployed%20on-AWS%20S3-FF9900?style=for-the-badge&logo=amazon-aws)](http://fez-memoy-game.s3-website.eu-north-1.amazonaws.com)
-![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?style=flat&logo=javascript&logoColor=black)
-![HTML5](https://img.shields.io/badge/HTML5-E34C26?style=flat&logo=html5&logoColor=white)
-![CSS3](https://img.shields.io/badge/CSS3-1572B6?style=flat&logo=css3&logoColor=white)
-
-</div>
+**[Play Now](http://fez-memoy-game.s3-website.eu-north-1.amazonaws.com)** | **[Run Benchmarks](benchmark.html)**
 
 ---
 
-## 🎯 Overview
+## The Challenge
 
-**Memory Duel** is a turn-based card matching game built in 3-4 hours that showcases **intelligent adversarial gameplay** and **production-grade deployment**. 
+Most memory card games pit you against a dumb AI that either cheats or plays randomly. I built something different: an opponent that plays by the same rules as you, learns card positions as they're revealed, and adapts its strategy in real-time.
 
-The AI opponent doesn't cheat—it plays by the same rules as you. Instead, it uses a **probabilistic Bayesian inference engine** to track card positions under imperfect information, making optimal decisions based on observed patterns and statistical confidence.
-
-**Result:** 97.8% win rate over 500 simulated games vs. random baseline.
+The result? A 97.8% win rate against random play over 500 simulated games.
 
 ---
 
-## 🧠 AI Algorithm: Probabilistic Bayesian Card Tracking
+## How the AI Actually Works
 
-### How it Works
+The AI doesn't peek at hidden cards. Instead, it maintains a **memory model** of everything it's legitimately seen:
 
-The AI uses a **belief-state model** to represent uncertainty about unrevealed cards:
+**1. Observe & Remember**
+- When cards flip, the AI records their position: `aiMemory[index] = { rank, suit }`
+- It only "knows" what's been revealed (just like you)
 
-1. **Observation Phase**
-   - When cards are flipped, the AI updates its internal belief matrix
-   - Tracks confirmed positions with 100% confidence
-   - Maintains probability distributions for unmatched cards
+**2. Make Smart Moves**
+- Priority 1: Found a matching pair in memory? Play it (high confidence)
+- Priority 2: Know one card? Pair it with an unseen card (partial info play)
+- Priority 3: No known cards? Pick randomly (pure exploration)
 
-2. **Inference Engine**
-   - Calculates posterior probabilities: `P(card_position | observations)`
-   - Uses Bayesian updates when new information is revealed
-   - Adjusts confidence scores based on match success/failure patterns
+**3. Add Realistic Imperfection**
+- 85% memory accuracy: the AI occasionally "forgets" a card it saw earlier
+- This prevents godlike play while keeping it genuinely competitive
+- Makes losses feel less frustrating (it's not cheating, it legitimately forgot)
 
-3. **Decision Making**
-   - Prioritizes moves by expected value: `E(value) = P(match) × reward - P(mismatch) × penalty`
-   - Exploits high-confidence positions first
-   - Balances information gathering vs. guaranteed matches
-   - Implements epsilon-greedy exploration to test uncertain hypotheses
+**The code:**
+```javascript
+// Look for known pairs in memory
+const knownByRank = {};
+availableCards.forEach(i => {
+    if (aiMemory[i] !== undefined) {
+        knownByRank[aiMemory[i].rank].push(i);
+    }
+});
 
-4. **Learning Component**
-   - Maintains running statistics on card frequency patterns
-   - Adjusts future decisions based on past game outcomes
-   - Handles edge cases (duplicate cards, probability collisions)
-
-### Why This Matters
-
-- **No Cheating** — AI sees exactly what players see; no hidden card tracking
-- **Realistic Intelligence** — Mimics human pattern recognition and memory improvement
-- **Scalable** — Can be extended to larger boards with increased complexity
-- **Interpretable** — Every move is traceable to a calculated decision
-
----
-
-## 🚀 Key Features
-
-### Gameplay
-- ♟️ **Turn-based mechanics** — Player vs. AI with clear turn indicators
-- 🏆 **Win/Loss tracking** — Persistent score across sessions (localStorage)
-- ⚡ **Smooth animations** — Card flips, matches, and state transitions
-- 📱 **Responsive design** — Works seamlessly on desktop and mobile
-
-### Technical Excellence
-- 🎯 **State management** — Clean separation of game logic from UI rendering
-- 🧪 **Benchmarking suite** — Included `benchmark.html` for performance testing
-- 📊 **Real-time metrics** — Turn counts, move efficiency, decision latency
-- 🌐 **Stateless deployment** — Pure client-side, no backend required
-
----
-
-## 📊 Performance Benchmarks
-
-**[🔗 View Full Benchmark Results](benchmark.html)** — Run 500-game simulations instantly
-
-```
-AI Win Rate:         97.8% (500 simulated games)
-Average Moves/Game:  12.3 (optimal: ~8)
-Decision Latency:    <2ms (including UI render)
-Memory Usage:        ~150KB per game session
-Board Size:          16 cards (4x4 grid)
+// Play the known pair if memory holds (85% accuracy)
+const knownPair = Object.values(knownByRank).find(arr => arr.length >= 2);
+if (knownPair && Math.random() < 0.85) {
+    return [knownPair[0], knownPair[1]];
+}
 ```
 
-**Interpretation:**
-- High win rate demonstrates effective probabilistic modeling
-- Move efficiency shows balanced exploitation vs. exploration
-- Sub-millisecond latency ensures responsive gameplay
-- Memory footprint proves efficiency of sparse data structures
+---
+
+## The Numbers
+
+**AI Performance:**
+- 97.8% win rate vs. random baseline (500 games)
+- Scales effortlessly to 6x4 boards (24 cards) in <2ms per move
+- Memory footprint: ~150KB per session
+
+**What This Means:**
+- The algorithm actually works—not theoretical
+- No framework bloat, pure JavaScript efficiency
+- Deployable and responsive on any device
 
 ---
 
-## 🛠️ Tech Stack
+## Stack
 
-| Layer | Technology |
-|-------|-----------|
-| **Frontend** | Vanilla JavaScript (ES6+) |
-| **Markup** | HTML5 Semantic Structure |
-| **Styling** | CSS3 (Flexbox, Grid, Animations) |
-| **State** | In-memory game state with localStorage persistence |
-| **Deployment** | AWS S3 static hosting with CloudFront CDN |
-| **Testing** | Benchmark suite for AI performance validation |
-
----
-
-## 🎓 What I Learned
-
-✅ **Game Theory & AI**
-- Implementing decision-making under uncertainty
-- Probabilistic reasoning and Bayesian inference
-- Trade-offs between exploration and exploitation
-
-✅ **Frontend Architecture**
-- Clean separation of concerns (game engine vs. UI)
-- Efficient DOM manipulation and re-rendering
-- State persistence and session management
-
-✅ **Production Deployment**
-- Static site hosting on AWS S3
-- CDN distribution for global performance
-- Client-side error handling and edge cases
-
-✅ **Performance Optimization**
-- Algorithm complexity analysis (AI decision-making)
-- Memory management in JavaScript
-- Animation performance (60fps target)
+| What | Why |
+|------|-----|
+| **JavaScript (ES6+)** | No frameworks. Full control over game state & AI logic. |
+| **HTML5** | Semantic structure, accessibility-first. |
+| **CSS3** | Smooth animations, responsive design, professional polish. |
+| **AWS S3** | Static hosting, global CDN, zero infrastructure headaches. |
+| **Benchmark.html** | Included dev tool to validate AI performance. |
 
 ---
 
-## 🔥 Highlights for Recruiters
+## Why This Matters
 
-| What | Why It Matters |
-|------|---------------|
-| **3-4 hour build** | Demonstrates rapid prototyping & execution speed |
-| **97.8% AI win rate** | Validates correctness of probabilistic algorithm |
-| **Production deployment** | Real shipping code on AWS, not local-only |
-| **Benchmark suite** | Shows attention to measurement & validation |
-| **Clean codebase** | Maintainability and professionalism |
-| **No frameworks** | Deep understanding of fundamentals (DOM, events, state) |
+✅ **It's real code, not a toy.** Built from scratch in 3-4 hours with clean architecture.
 
----
+✅ **The AI is legitimately smart.** Memory-based strategy beats random play 97.8% of the time.
 
-## 🎮 How to Play
+✅ **It ships to production.** Live on AWS S3 right now—not a local prototype.
 
-1. **[Open Live Demo](http://fez-memoy-game.s3-website.eu-north-1.amazonaws.com)**
-2. Click cards to reveal them
-3. Match pairs before the AI does
-4. Track wins/losses in the scoreboard
-5. Try to beat the AI's 97.8% win rate!
+✅ **Measurable and proven.** Benchmark suite included so you can run the numbers yourself.
+
+✅ **Shows fundamentals mastery.** DOM manipulation, event handling, algorithm design, state management—all without frameworks.
 
 ---
 
-## 📈 Potential Enhancements
+## What I Learned
 
-- [ ] Difficulty levels (adjust AI exploration rate)
-- [ ] Multiplayer mode (human vs. human or cooperative)
-- [ ] Leaderboard (track best scores across sessions)
-- [ ] Larger boards (6x6, 8x8 grids with increased algorithm complexity)
-- [ ] Move analysis — Explain why the AI made each decision
-- [ ] Self-play training — AI learns from previous games
-
----
-
-## 💬 Questions for Recruiters
-
-Interested in how the AI algorithm works? Key questions I can answer:
-
-- How does the AI handle duplicate cards?
-- What happens when the AI has multiple equally-likely matches?
-- How does the algorithm scale to larger boards?
-- Why is the win rate 97.8% instead of 100%?
+- **Game theory under uncertainty** — Building intelligent systems without perfect information
+- **JavaScript fundamentals** — Clean state management, efficient rendering, memory optimization
+- **Rapid execution** — Went from concept to deployed in 3-4 hours
+- **Measurement-driven development** — Algorithm validation through benchmarking
+- **Production mindset** — Deployed to real infrastructure (AWS S3), not just local testing
 
 ---
 
-## 🔗 Links
+## How to Play
 
-- 🎯 **[Play the Game](http://fez-memoy-game.s3-website.eu-north-1.amazonaws.com)**
-- 📊 **[View Benchmarks](benchmark.html)** — Run 500-game AI performance simulations
-- 📚 **[View Profile](https://github.com/fentiogbue13-web)**
+1. **[Open the game](http://fez-memoy-game.s3-website.eu-north-1.amazonaws.com)**
+2. Pick a board size (2x4, 4x4, or 6x4)
+3. Shuffle the cards
+4. Click "Start" and match pairs before the AI does
+5. Each match earns another turn
+6. Highest pairs at game end wins
+
+---
+
+## Want to Dig Deeper?
+
+- **[Benchmark tool](benchmark.html)** — Run 500-game simulations to see AI win rates
+- **[View the code](https://github.com/fentiogbue13-web/memory-game)** — See the algorithm in action
+- **[Play live](http://fez-memoy-game.s3-website.eu-north-1.amazonaws.com)** — Test your skills against the AI
+
+---
+
+## Next Steps
+
+The foundation is solid. Natural extensions:
+
+- Difficulty selector (adjust AI memory accuracy: 40%, 60%, 85%, 100%)
+- Larger boards (8x4, 10x6) with adaptive AI complexity
+- Multiplayer mode (human vs. human, or co-op vs. harder AI)
+- Move analysis ("Why did the AI pick that card?")
+- Leaderboard tracking across sessions
 
 ---
 
 <div align="center">
 
-**Built in 3-4 hours | Deployed to Production | AI: 97.8% Win Rate**
+**Built in 3-4 hours | 97.8% AI Win Rate | Live on AWS**
 
-*An exercise in building intelligent systems with clean architecture.*
+*Proof that solid fundamentals and clean execution beat complexity every time.*
 
 </div>
