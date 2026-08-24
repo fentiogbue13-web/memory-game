@@ -4,7 +4,7 @@
 
 **An intelligent memory-matching game where you compete against a probabilistic AI opponent.**
 
-[🎯 Play Live Demo](http://fez-memoy-game.s3-website.eu-north-1.amazonaws.com) | [View Benchmarks](#performance-benchmarks)
+[🎯 Play Live Demo](http://fez-memoy-game.s3-website.eu-north-1.amazonaws.com) | [📊 View Benchmarks](benchmark.html)
 
 [![AWS](https://img.shields.io/badge/Deployed%20on-AWS%20S3-FF9900?style=for-the-badge&logo=amazon-aws)](http://fez-memoy-game.s3-website.eu-north-1.amazonaws.com)
 ![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?style=flat&logo=javascript&logoColor=black)
@@ -79,7 +79,7 @@ The AI uses a **belief-state model** to represent uncertainty about unrevealed c
 
 ## 📊 Performance Benchmarks
 
-Run `benchmark.html` to see real-time performance metrics:
+**[🔗 View Full Benchmark Results](benchmark.html)** — Run 500-game simulations instantly
 
 ```
 AI Win Rate:         97.8% (500 simulated games)
@@ -182,7 +182,7 @@ Interested in how the AI algorithm works? Key questions I can answer:
 ## 🔗 Links
 
 - 🎯 **[Play the Game](http://fez-memoy-game.s3-website.eu-north-1.amazonaws.com)**
-- 📊 **View Benchmarks** — Open `benchmark.html` locally or check the performance report
+- 📊 **[View Benchmarks](benchmark.html)** — Run 500-game AI performance simulations
 - 📚 **[View Profile](https://github.com/fentiogbue13-web)**
 
 ---
