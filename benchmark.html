@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>AI Benchmark - Dev Tool (not part of the game)</title>
+  <style>
+    body { font-family: sans-serif; max-width: 600px; margin: 40px auto; line-height: 1.5; }
+    button { padding: 10px 16px; font-size: 15px; cursor: pointer; }
+    #result { margin-top: 20px; padding: 16px; background: #f0f0f0; border-radius: 6px; white-space: pre-wrap; }
+  </style>
+</head>
+<body>
+<h1>AI Opponent Benchmark</h1>
+<p>
+  This is a <strong>developer tool</strong>, separate from the actual game, used to measure the
+  memory-based AI's performance against a random-move baseline over many simulated games.
+  It runs instantly with no rendering. Not intended to be shipped alongside the playable game.
+</p>
+<button id="run-btn">Run 500-game benchmark</button>
+<div id="result"></div>
+
+<script>
+  const AI_MEMORY_ACCURACY = 0.85;
+
+  function simulateGame(boardRows, memoryAccuracy) {
+      let simCards = [];
+      for (let i = 1; i <= boardRows; i++) {
+          for (let j = 0; j < 4; j++) simCards.push({ rank: i });
+      }
+      for (let i = simCards.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [simCards[i], simCards[j]] = [simCards[j], simCards[i]];
+      }
+
+      let memory = new Array(simCards.length).fill(undefined);
+      let matched = new Array(simCards.length).fill(false);
+      let smartScore = 0, randomScore = 0;
+      let turn = 'smart';
+
+      function pickRandomMove() {
+          const available = simCards.map((_, i) => i).filter(i => !matched[i]);
+          const i1 = available[Math.floor(Math.random() * available.length)];
+          let remaining = available.filter(i => i !== i1);
+          const i2 = remaining[Math.floor(Math.random() * remaining.length)];
+          return [i1, i2];
+      }
+
+      function pickSmartMove() {
+          const available = simCards.map((_, i) => i).filter(i => !matched[i]);
+          const knownByRank = {};
+          available.forEach(i => {
+              if (memory[i] !== undefined) {
+                  knownByRank[memory[i]] = knownByRank[memory[i]] || [];
+                  knownByRank[memory[i]].push(i);
+              }
+          });
+          const knownPair = Object.values(knownByRank).find(arr => arr.length >= 2);
+          if (knownPair && Math.random() < memoryAccuracy) return [knownPair[0], knownPair[1]];
+
+          const knownSingles = Object.values(knownByRank).map(arr => arr[0]);
+          let first = knownSingles.length > 0
+              ? knownSingles[Math.floor(Math.random() * knownSingles.length)]
+              : available[Math.floor(Math.random() * available.length)];
+          let remaining = available.filter(i => i !== first);
+          let second = remaining[Math.floor(Math.random() * remaining.length)];
+          return [first, second];
+      }
+
+      let safety = 0;
+      while (matched.filter(m => !m).length > 0 && safety < 10000) {
+          safety++;
+          const [a, b] = turn === 'smart' ? pickSmartMove() : pickRandomMove();
+          memory[a] = simCards[a].rank;
+          memory[b] = simCards[b].rank;
+
+          if (simCards[a].rank === simCards[b].rank) {
+              matched[a] = true;
+              matched[b] = true;
+              if (turn === 'smart') smartScore++; else randomScore++;
+          } else {
+              turn = turn === 'smart' ? 'random' : 'smart';
+          }
+      }
+
+      return smartScore > randomScore ? 'smart' : (smartScore < randomScore ? 'random' : 'draw');
+  }
+
+  function runBenchmark(numGames, boardRows, memoryAccuracy) {
+      let smartWins = 0, randomWins = 0, draws = 0;
+      for (let g = 0; g < numGames; g++) {
+          const result = simulateGame(boardRows, memoryAccuracy);
+          if (result === 'smart') smartWins++;
+          else if (result === 'random') randomWins++;
+          else draws++;
+      }
+      const winRate = ((smartWins / numGames) * 100).toFixed(1);
+      return { numGames, smartWins, randomWins, draws, winRate };
+  }
+
+  document.getElementById('run-btn').addEventListener('click', () => {
+      document.getElementById('result').innerText = 'Running...';
+      setTimeout(() => {
+          const stats = runBenchmark(500, 6, AI_MEMORY_ACCURACY);
+          document.getElementById('result').innerText =
+              `Memory-based AI won ${stats.smartWins} / ${stats.numGames} games (${stats.winRate}% win rate)\n` +
+              `vs a random-move baseline.\n` +
+              `Losses: ${stats.randomWins}, Draws: ${stats.draws}\n` +
+              `Board: 6x4 (24 cards), Memory accuracy: ${AI_MEMORY_ACCURACY * 100}%`;
+      }, 50);
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Matching Pairs Game vs AI - io11</title>
+    <link rel="stylesheet" href="io11.css">
+</head>
+<body>
+
+<h1>Matching Pairs Game vs AI</h1>
+<p>Select a board size and shuffle the cards to start the game! You're playing against a memory-based AI opponent.</p>
+
+<div id="size-selection">
+    <label><input type="radio" name="boardSize" value="2"> 2x4</label>
+    <label><input type="radio" name="boardSize" value="4"> 4x4</label>
+    <label><input type="radio" name="boardSize" value="6"> 6x4</label>
+</div>
+
+<div id="controls">
+    <button id="shuffle-btn">Shuffle</button>
+    <button id="start-btn">Start</button>
+</div>
+
+<div id="turn-indicator">
+    <strong id="turn-display">Your turn</strong>
+</div>
+
+<div id="game-board"></div>
+
+<div id="stats">
+    <span>No. of clicks: <span id="click-count">0</span></span>
+    <span>Your pairs: <span id="pair-count">0</span></span>
+    <span>AI pairs: <span id="ai-pair-count">0</span></span>
+</div>
+
+<script src="io11.js"></script>
+</body>
+</html>
